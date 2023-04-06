@@ -34,6 +34,15 @@ class AthenaSink(BatchSink):
         ddl = athena.generate_create_database_ddl(self.config["athena_database"])
         athena.execute_sql(ddl, self.athena_client)
 
+    def _validate_and_parse(self, record):
+        if self.config.get("validate_records"):
+            self._validator.validate(record)
+        self._parse_timestamps_in_record(
+            record=record, schema=self.schema, treatment=self.datetime_error_treatment
+        )
+        return record
+    
+
     @property
     def s3_client(self):
         if not self._s3_client:
